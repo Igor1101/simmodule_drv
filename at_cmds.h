@@ -9,7 +9,7 @@
 #define AT_SIMMODULE_AT_CMDS_H_
 #include "serial.h"
 
-#define AT_CMD(...) serial_print(SERIAL_AT, __VA_ARGS__)
+#define AT_CMD(...) serial_print(SERIAL_AT, __VA_ARGS__ "\r\n")
 
 
 #endif /* AT_SIMMODULE_AT_CMDS_H_ */
