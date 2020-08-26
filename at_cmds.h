@@ -9,7 +9,14 @@
 #define AT_SIMMODULE_AT_CMDS_H_
 #include "serial.h"
 
-#define AT_CMD(...) serial_print(SERIAL_AT, __VA_ARGS__ "\r\n")
+#define AT_CMD(...) serial_println(SERIAL_AT, __VA_ARGS__)
+
+#define AT_GETRESULT	serial_getdata(SERIAL_AT, 1000)
+
+#define AT_CMD_DEBUG(...) do {\
+	serial_println(SERIAL_AT, __VA_ARGS__); \
+	pr_debugln("AT RESULT\"%s\"", AT_GETRESULT);\
+	}while(0)
 
 
 #endif /* AT_SIMMODULE_AT_CMDS_H_ */
