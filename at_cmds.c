@@ -1,4 +1,4 @@
-#include "serial.h"
+#include <serial/serial.h>
 #include "stm32f4xx_hal.h"
 #include "at_cmds.h"
 #include "cmsis_os.h"
