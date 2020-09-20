@@ -1,4 +1,4 @@
-#include <serial/serial.h>
+#include <generic/serial.h>
 #include "stm32f4xx_hal.h"
 #include "at_cmds.h"
 

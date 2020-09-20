@@ -7,7 +7,7 @@
 
 #ifndef AT_SIMMODULE_AT_CMDS_H_
 #define AT_SIMMODULE_AT_CMDS_H_
-#include <serial/serial.h>
+#include <generic/serial.h>
 
 #define AT_CMD(...) serial_println(SERIAL_AT, __VA_ARGS__)
 
