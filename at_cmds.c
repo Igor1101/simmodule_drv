@@ -1,7 +1,6 @@
 #include <serial/serial.h>
 #include "stm32f4xx_hal.h"
 #include "at_cmds.h"
-#include "cmsis_os.h"
 
 void at_cmd(void)
 {
@@ -20,6 +19,5 @@ void at_task_func(void const * argument)
 		AT_CMD_DEBUG("AT+GSN");
 		AT_CMD_DEBUG("AT+CGREG?");
 		//AT_CMD_DEBUG("ATD0966038461;");
-		osDelay(10000);
 	}
 }
