@@ -1,5 +1,5 @@
 #include <generic/serial.h>
-#include "stm32f4xx_hal.h"
+#include MCU_HEADER
 #include "at_cmds.h"
 
 void at_cmd(void)
