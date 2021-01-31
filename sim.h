@@ -32,6 +32,10 @@
 
 #define SIM_GETRESULT_BLK	serial_getdata(SERIAL_AT, 4000)
 
+// special characters
+#define CTRL_Z 26
+
+
 extern char recv_data_dbg[RECV_DATA_SZ];
 void sim_receive_data(char data);
 void sim_response_init(void);

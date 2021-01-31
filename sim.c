@@ -3,9 +3,7 @@
 #include MCU_HEADER
 
 static char recv_data[RECV_DATA_SZ] = {0};
-static char parse_buf[PARSE_BUF_AMOUNT][RECV_DATA_SZ] = {0};
-static bool parse_buf_busy[PARSE_BUF_AMOUNT];
-static uint8_t cur_parse_buf = 0;
+static char parse_buf[RECV_DATA_SZ*PARSE_BUF_AMOUNT] = {0};
 char recv_data_dbg[RECV_DATA_SZ];
 
 volatile static uint8_t recv_data_p = 0;
@@ -39,20 +37,14 @@ void sim_response_deinit(void)
 void sim_receive_data(char data)
 {
 	// here receive to parse buf
-	if(cur_parse_buf > PARSE_BUF_AMOUNT) {
-		cur_parse_buf = 0;
-	}
-	if(!parse_task_on) {
 	if(data == '\n') {
 		parse_task_on = true;
 	}
-	parse_buf[parse_buf_p++] = data;
 	if(parse_buf_p >= sizeof parse_buf) {
-		parse();
-		memset(parse_buf, 0, sizeof parse_buf);
-		parse_buf_p = 0;
+		parse_task_on = true;
+	} else {
+		parse_buf[parse_buf_p++] = data;
 	}
-
 	// here receive to recv data
 	if(recv_on) {
 		if(recv_data_p < sizeof recv_data)
@@ -82,8 +74,12 @@ void at_task_func(void const * argument)
 		SIM_CMD_DEBUG("AT+CGREG?");
 		//AT_CMD_DEBUG("AT+CMGF=1");
 		//AT_CMD_DEBUG("AT+CMGS=\"+phone\"");
-#define CTRL_Z 26
 		//serial_printf(SERIAL_AT, "\"qwerty%c", CTRL_Z);
 		//tty_println("RES\"%s\" cmd:", AT_GETRESULT);
 		//AT_CMD_DEBUG("ATD0966038461;");
+}
+
+void sim_tcp_ip_con_init(void)
+{
+
 }
