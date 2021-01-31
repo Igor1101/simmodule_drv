@@ -1,10 +1,11 @@
+#include <string.h>
 #include <generic/serial.h>
 #include <simmodule_drv/sim.h>
 #include MCU_HEADER
 
 static char recv_data[RECV_DATA_SZ] = {0};
 static char parse_buf[RECV_DATA_SZ*PARSE_BUF_AMOUNT] = {0};
-char recv_data_dbg[RECV_DATA_SZ];
+char recv_data_buf[RECV_DATA_SZ];
 
 volatile static uint8_t recv_data_p = 0;
 volatile static uint8_t parse_buf_p = 0;
@@ -55,6 +56,13 @@ void sim_receive_data(char data)
 	}
 }
 
+bool sim_hasvalue(char*str, char*value)
+{
+	if(strstr(str, value) != NULL)
+		return true;
+	return false;
+}
+
 static void parse(void)
 {
 	//tty_println("p:%s", parse_buf);
@@ -79,7 +87,35 @@ void at_task_func(void const * argument)
 		//AT_CMD_DEBUG("ATD0966038461;");
 }
 
-void sim_tcp_ip_con_init(void)
+bool sim_tcp_ip_con_init(void)
 {
-
+	// verify if SIM CARD is ready
+	SIM_CMD_DEBUG("AT+CPIN?");
+	SIM_NOVALUE("READY") {
+		// not ready
+		return false;
+	}
+	// verify NET registration
+	SIM_CMD_DEBUG("AT+CREG?");
+	SIM_NOVALUE("0,1") {
+		// should be +CREG: 0,1
+		return false;
+	}
+	// verify access to packet data transmission
+	SIM_CMD_DEBUG("AT+CGATT?");
+	SIM_NOVALUE("1") {
+		// should be +CGATT: 1
+		return false;
+	}
+	// set: use cmds to transmit data
+	SIM_CMD_DEBUG("AT+CIPMODE=0");
+	SIM_ERROR {
+		return false;
+	}
+	// set: monosocket
+	SIM_CMD_DEBUG("AT+CIPMUX=0");
+	SIM_ERROR {
+		return false;
+	}
+	return true;
 }
