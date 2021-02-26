@@ -1,16 +1,17 @@
 #include <string.h>
 #include <generic/serial.h>
+#include <generic/flash_mng.h>
 #include <simmodule_drv/sim.h>
 #include MCU_HEADER
 
-static char recv_data[RECV_DATA_SZ] = {0};
+char recv_data[RECV_DATA_SZ] = {0};
 static char parse_buf[RECV_DATA_SZ*PARSE_BUF_AMOUNT] = {0};
 char recv_data_buf[RECV_DATA_SZ];
 
-volatile static uint8_t recv_data_p = 0;
-volatile static uint8_t parse_buf_p = 0;
-volatile static bool recv_on = false;
-volatile static bool parse_task_on = false;
+volatile uint8_t recv_data_p = 0;
+volatile uint8_t parse_buf_p = 0;
+volatile bool recv_on = false;
+volatile bool parse_task_on = false;
 
 static void clr_buf(void);
 static void parse(void);
@@ -70,16 +71,16 @@ static void parse(void)
 
 void at_task_func(void const * argument)
 {
-		SIM_CMD_DEBUG("ATE0");
-		SIM_CMD_DEBUG("AT");
-		SIM_CMD_DEBUG("ATE0");
-		SIM_CMD_DEBUG("AT");
-		SIM_CMD_DEBUG("AT+CSQ");
-		SIM_CMD_DEBUG("ATI");
-		SIM_CMD_DEBUG("AT+GSV");
-		SIM_CMD_DEBUG("AT+CIMI");
-		SIM_CMD_DEBUG("AT+GSN");
-		SIM_CMD_DEBUG("AT+CGREG?");
+		SIMC("ATE0");
+		SIMC("AT");
+		SIMC("ATE0");
+		SIMC("AT");
+		SIMC("AT+CSQ");
+		SIMC("ATI");
+		SIMC("AT+GSV");
+		SIMC("AT+CIMI");
+		SIMC("AT+GSN");
+		SIMC("AT+CGREG?");
 		//AT_CMD_DEBUG("AT+CMGF=1");
 		//AT_CMD_DEBUG("AT+CMGS=\"+phone\"");
 		//serial_printf(SERIAL_AT, "\"qwerty%c", CTRL_Z);
@@ -87,35 +88,54 @@ void at_task_func(void const * argument)
 		//AT_CMD_DEBUG("ATD0966038461;");
 }
 
-bool sim_tcp_ip_con_init(void)
+bool sim_tcp_con_init(void)
 {
 	// verify if SIM CARD is ready
-	SIM_CMD_DEBUG("AT+CPIN?");
+	SIMC("AT+CPIN?");
 	SIM_NOVALUE("READY") {
 		// not ready
 		return false;
 	}
 	// verify NET registration
-	SIM_CMD_DEBUG("AT+CREG?");
-	SIM_NOVALUE("0,1") {
+	SIMC("AT+CREG?");
+	SIM_NOVALUE("CREG") {
 		// should be +CREG: 0,1
 		return false;
 	}
-	// verify access to packet data transmission
-	SIM_CMD_DEBUG("AT+CGATT?");
-	SIM_NOVALUE("1") {
-		// should be +CGATT: 1
-		return false;
-	}
-	// set: use cmds to transmit data
-	SIM_CMD_DEBUG("AT+CIPMODE=0");
-	SIM_ERROR {
-		return false;
-	}
-	// set: monosocket
-	SIM_CMD_DEBUG("AT+CIPMUX=0");
-	SIM_ERROR {
-		return false;
-	}
+	//any previous connections should be closed
+	SIMC("AT+NETCLOSE");
+	SIMC("AT+CGSOCKCONT=1,\"IP\",\"CMNET\"");
+	// PDP CONTEXT
+	SIMC("AT+CGDCONT=1,\"IP\",\"CMNET\"");
+	//Configure for non-transparent mode
+	SIMC("AT+CIPMODE=0");
+	// PDP profile number
+	//Set the PDP profile number to use
+	SIMC("AT+CSOCKSETPN=1");
+	//Open the socket
+	SIMC("AT+NETOPEN");
+	//Get the IP address
+	SIMC("AT+IPADDR");
+	//Start the TCP connection
+	SIMC("AT+CIPOPEN=0,\"TCP\",\"%s\",%s", fdata.server0_addr, fdata.conf_port);
 	return true;
+}
+
+bool sim_tcp_send(void*data, size_t sz)
+{
+	SIMC("AT+CIPSEND=0,%d" , sz);
+	sim_response_init();
+	serial_write(SERIAL_AT, data, sz);
+	sim_send_end();
+	HAL_Delay(SIM_RESPONSE_DELAY);
+	memcpy(recv_data_buf, recv_data, recv_data_p);
+	tty_println("R:\"%s\"", recv_data_buf);
+	sim_response_deinit();
+	return true;
+}
+
+void sim_send_end(void)
+{
+	char z[2] = { 0x03, CTRL_Z};
+	serial_write(SERIAL_AT, z, sizeof z);
 }

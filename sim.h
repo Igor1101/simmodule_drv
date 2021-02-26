@@ -13,7 +13,8 @@
 
 #define PARSE_BUF_AMOUNT 4
 #define RECV_DATA_SZ 128
-#define SIM_RESPONSE_DELAY 4000
+#define SIM_RESPONSE_DELAY 400
+#define SIMC	SIM_CMD_DEBUG
 #define SIM_CMD_PRINT(...) serial_println(SERIAL_AT, __VA_ARGS__)
 #define SIM_CMD_RESP(INPUT, ...)				\
 	do {								\
@@ -48,12 +49,20 @@
 #define CTRL_Z 26
 
 
+extern volatile uint8_t recv_data_p;
+extern volatile uint8_t parse_buf_p;
+extern volatile bool recv_on ;
+extern volatile bool parse_task_on ;
 extern char recv_data_buf[RECV_DATA_SZ];
+extern char recv_data[RECV_DATA_SZ];
 bool sim_hasvalue(char*value, char*str);
 void sim_receive_data(char data);
 void sim_response_init(void);
 void sim_response_deinit(void);
 char* sim_cmd_resp(char*cmd);
-bool sim_tcp_ip_con_init(void);
+bool sim_tcp_con_init(void);
+bool sim_tcp_open_con(void);
+void sim_send_end(void);
+bool sim_tcp_send(void*data, size_t sz);
 
 #endif /* AT_SIMMODULE_AT_CMDS_H_ */
