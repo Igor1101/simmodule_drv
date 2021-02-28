@@ -10,17 +10,19 @@
 #include <generic/serial.h>
 #include <generic/display.h>
 #include <string.h>
+#include "iwdg.h"
 
 #define PARSE_BUF_AMOUNT 4
 #define RECV_DATA_SZ 128
 #define SIM_RESPONSE_DELAY 400
-#define SIMC	SIM_CMD_DEBUG
+#define SIMC	SIM_CMD
 #define SIM_CMD_PRINT(...) serial_println(SERIAL_AT, __VA_ARGS__)
 #define SIM_CMD_RESP(INPUT, ...)				\
 	do {								\
 		sim_response_init();			\
 		SIM_CMD_PRINT(__VA_ARGS__);			\
 		HAL_Delay(SIM_RESPONSE_DELAY);	\
+		__HAL_IWDG_RELOAD_COUNTER(&hiwdg);		\
 		memcpy(INPUT, recv_data, recv_data_p); 	\
 		sim_response_deinit();			\
 	}while(0)
@@ -61,6 +63,7 @@ void sim_response_init(void);
 void sim_response_deinit(void);
 char* sim_cmd_resp(char*cmd);
 bool sim_tcp_con_init(void);
+bool sim_tcp_con_deinit(void);
 bool sim_tcp_open_con(void);
 void sim_send_end(void);
 bool sim_tcp_send(void*data, size_t sz);

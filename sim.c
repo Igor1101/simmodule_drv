@@ -134,6 +134,15 @@ bool sim_tcp_send(void*data, size_t sz)
 	return true;
 }
 
+bool sim_tcp_con_deinit(void)
+{
+	SIMC("AT+CIPCLOSE=0");
+	SIM_NOVALUE("OK") {
+		return false;
+	}
+	return true;
+}
+
 void sim_send_end(void)
 {
 	char z[2] = { 0x03, CTRL_Z};
