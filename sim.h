@@ -20,7 +20,7 @@
 #define SIM_CMD_RESP(INPUT, ...)				\
 	do {								\
 		sim_response_init();			\
-		SIM_CMD_PRINT(__VA_ARGS__);			\
+		SIM_CMD_PRINT(__VA_ARGS__);				\
 		HAL_Delay(SIM_RESPONSE_DELAY);	\
 		__HAL_IWDG_RELOAD_COUNTER(&hiwdg);		\
 		memcpy(INPUT, recv_data, recv_data_p); 	\
