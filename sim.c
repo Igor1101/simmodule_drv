@@ -36,21 +36,22 @@ void sim_response_deinit(void)
 
 
 
-void sim_receive_data(char data)
+void sim_receive_data(int data)
 {
+	char cdata = (char)data;
 	// here receive to parse buf
-	if(data == '\n') {
+	if(cdata == '\n') {
 		parse_task_on = true;
 	}
 	if(parse_buf_p >= sizeof parse_buf) {
 		parse_task_on = true;
 	} else {
-		parse_buf[parse_buf_p++] = data;
+		parse_buf[parse_buf_p++] = cdata;
 	}
 	// here receive to recv data
 	if(recv_on) {
 		if(recv_data_p < sizeof recv_data)
-			recv_data[recv_data_p++] = data;
+			recv_data[recv_data_p++] = cdata;
 		else {
 			// overflow signal
 		}

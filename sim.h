@@ -58,7 +58,7 @@ extern volatile bool parse_task_on ;
 extern char recv_data_buf[RECV_DATA_SZ];
 extern char recv_data[RECV_DATA_SZ];
 bool sim_hasvalue(char*value, char*str);
-void sim_receive_data(char data);
+void sim_receive_data(int data);
 void sim_response_init(void);
 void sim_response_deinit(void);
 char* sim_cmd_resp(char*cmd);
