@@ -52,11 +52,12 @@
 
 
 extern volatile uint8_t recv_data_p;
-extern volatile uint8_t parse_buf_p;
 extern volatile bool recv_on ;
-extern volatile bool parse_task_on ;
 extern char recv_data_buf[RECV_DATA_SZ];
 extern char recv_data[RECV_DATA_SZ];
+extern volatile bool sim_parse_task_on;
+extern volatile uint8_t sim_parse_buf_p;
+extern char sim_parse_buf[RECV_DATA_SZ];
 bool sim_hasvalue(char*value, char*str);
 void sim_receive_data(int data);
 void sim_response_init(void);
@@ -67,5 +68,9 @@ bool sim_tcp_con_deinit(void);
 bool sim_tcp_open_con(void);
 void sim_send_end(void);
 bool sim_tcp_send(void*data, size_t sz);
-
+// GPS control
+bool sim_GPS_init(void);
+bool sim_GPS_deinit(void);
+void sim_GPS_startgetinfo(int times);
+bool sim_GPS_corr_data(void);
 #endif /* AT_SIMMODULE_AT_CMDS_H_ */

@@ -5,13 +5,13 @@
 #include MCU_HEADER
 
 char recv_data[RECV_DATA_SZ] = {0};
-static char parse_buf[RECV_DATA_SZ*PARSE_BUF_AMOUNT] = {0};
+char sim_parse_buf[RECV_DATA_SZ] = {0};
 char recv_data_buf[RECV_DATA_SZ];
 
 volatile uint8_t recv_data_p = 0;
-volatile uint8_t parse_buf_p = 0;
+volatile uint8_t sim_parse_buf_p = 0;
 volatile bool recv_on = false;
-volatile bool parse_task_on = false;
+volatile bool sim_parse_task_on = false;
 
 static void clr_buf(void);
 static void parse(void);
@@ -19,7 +19,7 @@ static void parse(void);
 static void clr_buf(void)
 {
 	recv_data_p = 0;
-	parse_buf_p = 0;
+	sim_parse_buf_p = 0;
 }
 
 void sim_response_init(void)
@@ -41,12 +41,12 @@ void sim_receive_data(int data)
 	char cdata = (char)data;
 	// here receive to parse buf
 	if(cdata == '\n') {
-		parse_task_on = true;
+		sim_parse_task_on = true;
 	}
-	if(parse_buf_p >= sizeof parse_buf) {
-		parse_task_on = true;
+	if(sim_parse_buf_p >= sizeof sim_parse_buf) {
+		sim_parse_task_on = true;
 	} else {
-		parse_buf[parse_buf_p++] = cdata;
+		sim_parse_buf[sim_parse_buf_p++] = cdata;
 	}
 	// here receive to recv data
 	if(recv_on) {
@@ -67,7 +67,7 @@ bool sim_hasvalue(char*str, char*value)
 
 static void parse(void)
 {
-	//tty_println("p:%s", parse_buf);
+	//tty_println("p:%s", sim_parse_buf);
 }
 
 void at_task_func(void const * argument)
@@ -148,4 +148,44 @@ void sim_send_end(void)
 {
 	char z[2] = { 0x03, CTRL_Z};
 	serial_write(SERIAL_AT, z, sizeof z);
+}
+
+bool sim_GPS_init(void)
+{
+	SIMC("AT+CGPS=1");
+	SIM_NOVALUE("OK") {
+		return false;
+	}
+	return true;
+}
+
+bool sim_GPS_deinit(void)
+{
+	SIMC("AT+CGPS=1");
+	SIM_NOVALUE("OK") {
+		return false;
+	}
+	return true;
+}
+
+bool sim_GPS_verify(void)
+{
+	SIMC("AT+CGPS?");
+	SIM_NOVALUE("1,1") {
+		return false;
+	}
+	return true;
+}
+
+void sim_GPS_startgetinfo(int times)
+{
+	SIMC("AT+CGPSINFO=%d", times);
+}
+
+bool sim_GPS_corr_data(void)
+{
+	if(sim_hasvalue(sim_parse_buf, "+CGPSINFO")) {
+		return true;
+	}
+	return false;
 }
