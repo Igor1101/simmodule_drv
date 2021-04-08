@@ -5,8 +5,9 @@
 #include MCU_HEADER
 
 char recv_data[RECV_DATA_SZ] = {0};
-char sim_parse_buf[RECV_DATA_SZ] = {0};
+static char sim_parse_buf[RECV_DATA_SZ] = {0};
 char recv_data_buf[RECV_DATA_SZ];
+static char sim_GPS_buf[RECV_DATA_SZ];
 
 volatile uint8_t recv_data_p = 0;
 volatile uint8_t sim_parse_buf_p = 0;
@@ -34,13 +35,33 @@ void sim_response_deinit(void)
 	recv_on = false;
 }
 
+void sim_task_parse(void)
+{
+	// verify GPS part
+	if(sim_GPS_corr_data()) {
+		char*needed_part = strstr(sim_parse_buf, "+CGPSINFO");
+		if(needed_part != NULL) {
+			// find next \r\n occurence, change it to \0
+			for(char*d = needed_part; *d != 0; d++) {
+				if(*d == '\n' || *d == '\r') {
+					*d = '\0';
+				}
+			}
+			// now copy GPS data to sim_GPS_buf
+			strncpy(sim_GPS_buf, needed_part, sizeof sim_GPS_buf);
+		}
+	}
 
+	memset(sim_parse_buf, 0, sizeof sim_parse_buf);
+	sim_parse_buf_p = 0;
+	sim_parse_task_on = false;
+}
 
 void sim_receive_data(int data)
 {
 	char cdata = (char)data;
 	// here receive to parse buf
-	if(cdata == '\n') {
+	if(cdata == '\n' || cdata == '\r') {
 		sim_parse_task_on = true;
 	}
 	if(sim_parse_buf_p >= sizeof sim_parse_buf) {
@@ -63,11 +84,6 @@ bool sim_hasvalue(char*str, char*value)
 	if(strstr(str, value) != NULL)
 		return true;
 	return false;
-}
-
-static void parse(void)
-{
-	//tty_println("p:%s", sim_parse_buf);
 }
 
 void at_task_func(void const * argument)
@@ -188,4 +204,12 @@ bool sim_GPS_corr_data(void)
 		return true;
 	}
 	return false;
+}
+
+char* sim_GPS_get_data(void)
+{
+	if(sim_hasvalue(sim_GPS_buf, "+CGPSINFO")) {
+		return sim_GPS_buf;
+	}
+	return NULL;
 }

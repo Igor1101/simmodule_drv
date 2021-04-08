@@ -57,7 +57,6 @@ extern char recv_data_buf[RECV_DATA_SZ];
 extern char recv_data[RECV_DATA_SZ];
 extern volatile bool sim_parse_task_on;
 extern volatile uint8_t sim_parse_buf_p;
-extern char sim_parse_buf[RECV_DATA_SZ];
 bool sim_hasvalue(char*value, char*str);
 void sim_receive_data(int data);
 void sim_response_init(void);
@@ -68,6 +67,7 @@ bool sim_tcp_con_deinit(void);
 bool sim_tcp_open_con(void);
 void sim_send_end(void);
 bool sim_tcp_send(void*data, size_t sz);
+void sim_task_parse(void);
 // GPS control
 bool sim_GPS_init(void);
 bool sim_GPS_deinit(void);
