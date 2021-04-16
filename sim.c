@@ -14,15 +14,6 @@ volatile uint8_t sim_parse_buf_p = 0;
 volatile bool recv_on = false;
 volatile bool sim_parse_task_on = false;
 
-static void clr_buf(void);
-static void parse(void);
-
-static void clr_buf(void)
-{
-	recv_data_p = 0;
-	sim_parse_buf_p = 0;
-}
-
 void sim_response_init(void)
 {
 	recv_data_p = 0;
