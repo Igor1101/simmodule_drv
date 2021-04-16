@@ -73,4 +73,5 @@ bool sim_GPS_init(void);
 bool sim_GPS_deinit(void);
 void sim_GPS_startgetinfo(int times);
 bool sim_GPS_corr_data(void);
+char* sim_GPS_get_data(void);
 #endif /* AT_SIMMODULE_AT_CMDS_H_ */

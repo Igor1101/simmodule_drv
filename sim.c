@@ -128,7 +128,7 @@ bool sim_tcp_con_init(void)
 	//Get the IP address
 	SIMC("AT+IPADDR");
 	//Start the TCP connection
-	SIMC("AT+CIPOPEN=0,\"TCP\",\"%s\",%s", fdata.server0_addr, fdata.conf_port);
+	SIMC("AT+CIPOPEN=0,\"TCP\",\"%s\",%s", fdata.server0_addr, fdata.port);
 	return true;
 }
 
