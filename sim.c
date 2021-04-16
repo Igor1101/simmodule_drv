@@ -42,14 +42,15 @@ void sim_task_parse(void)
 		char*needed_part = strstr(sim_parse_buf, "+CGPSINFO");
 		if(needed_part != NULL) {
 			// find next \r\n occurence, change it to \0
-			for(char*d = needed_part; *d != 0; d++) {
+			for(char*d = needed_part; *d != 0 && d < sim_parse_buf + sizeof sim_parse_buf;
+					d++) {
 				if(*d == '\n' || *d == '\r') {
 					*d = '\0';
 				}
 			}
 			// now copy GPS data to sim_GPS_buf
 			strncpy(sim_GPS_buf, needed_part, sizeof sim_GPS_buf);
-		}
+				}
 	}
 
 	memset(sim_parse_buf, 0, sizeof sim_parse_buf);
@@ -61,13 +62,15 @@ void sim_receive_data(int data)
 {
 	char cdata = (char)data;
 	// here receive to parse buf
-	if(cdata == '\n' || cdata == '\r') {
-		sim_parse_task_on = true;
-	}
-	if(sim_parse_buf_p >= sizeof sim_parse_buf) {
-		sim_parse_task_on = true;
-	} else {
-		sim_parse_buf[sim_parse_buf_p++] = cdata;
+	if(sim_parse_task_on == false) {
+		if(sim_parse_buf_p >= sizeof sim_parse_buf) {
+			sim_parse_task_on = true;
+		} else if((cdata == '\n' || cdata == '\r') && sim_parse_buf_p > 20) {
+			sim_parse_buf[sim_parse_buf_p++] = cdata;
+			sim_parse_task_on = true;
+		} else {
+			sim_parse_buf[sim_parse_buf_p++] = cdata;
+		}
 	}
 	// here receive to recv data
 	if(recv_on) {
@@ -168,7 +171,7 @@ void sim_send_end(void)
 
 bool sim_GPS_init(void)
 {
-	SIMC("AT+CGPS=1");
+	SIM_CMD_DEBUG("AT+CGPS=1");
 	SIM_NOVALUE("OK") {
 		return false;
 	}
@@ -177,7 +180,7 @@ bool sim_GPS_init(void)
 
 bool sim_GPS_deinit(void)
 {
-	SIMC("AT+CGPS=1");
+	SIM_CMD_DEBUG("AT+CGPS=0");
 	SIM_NOVALUE("OK") {
 		return false;
 	}
@@ -195,7 +198,7 @@ bool sim_GPS_verify(void)
 
 void sim_GPS_startgetinfo(int times)
 {
-	SIMC("AT+CGPSINFO=%d", times);
+	SIM_CMD_DEBUG("AT+CGPSINFO=%d", times);
 }
 
 bool sim_GPS_corr_data(void)
